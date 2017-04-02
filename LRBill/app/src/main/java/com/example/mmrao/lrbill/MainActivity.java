@@ -1,5 +1,9 @@
 package com.example.mmrao.lrbill;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -77,14 +81,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void invokeLogin(View view){
-        username = editTextUserName.getText().toString();
-        password = editTextPassword.getText().toString();
-        Log.e("username", "_"+username+"_");
-        Log.e("password", "_"+password+"_");
-        Toast.makeText(this, "_"+username+"_", Toast.LENGTH_SHORT).show();
+        if(testConnection())
+        {
+            Log.e("Connection","connected");
+            username = editTextUserName.getText().toString();
+            password = editTextPassword.getText().toString();
+            Log.e("username", "_" + username + "_");
+            Log.e("password", "_" + password + "_");
+            Toast.makeText(this, "_" + username + "_", Toast.LENGTH_SHORT).show();
 
-        login(username,password);
+            login(username, password);
+        }
+        else
+        {
+            Log.e("Connection"," Not connected");
+            Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            startActivity(intent);
+        }
 
+    }
+    public boolean testConnection() {
+
+        try {
+            Log.e("status","in try");
+            ConnectivityManager connMgr = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isConnected()) {
+                return true;
+            } else {
+                // display error
+                Log.e("status1","return false");
+                return false;
+            }
+        }
+        catch (Exception e)
+        {
+            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        Log.e("status2","return true");
+        return true;
     }
 
     private void login(final String username, String password) {
@@ -142,19 +178,21 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void onPostExecute(String result){
-                String s = result.trim();
-                loadingDialog.dismiss();
-                s=s.substring(0,7);
-                if(s.equalsIgnoreCase("success")){
-                   // String data = getIntent().getStringExtra(Register.USER_NAME);
+            protected void onPostExecute(String result) {
+                if (testConnection()) {
+                    String s = result.trim();
+                    loadingDialog.dismiss();
+                    s = s.substring(0, 7);
+                    if (s.equalsIgnoreCase("success")) {
+                        // String data = getIntent().getStringExtra(Register.USER_NAME);
 
-                    Intent intent = new Intent(MainActivity.this, UserMerchant.class);
-                    intent.putExtra("USER_NAME",username);
-                    finish();
-                    startActivity(intent);
-                }else {
-                    Toast.makeText(getApplicationContext(), "Invalid User Name or Password"+s, Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(MainActivity.this, UserMerchant.class);
+                        intent.putExtra("USER_NAME", username);
+                        finish();
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Invalid User Name or Password" + s, Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         }
